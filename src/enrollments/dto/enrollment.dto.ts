@@ -6,7 +6,7 @@ import { EnrollmentStatus } from '../schemas/enrollment.schema';
 export class CreateEnrollmentDto {
   @ApiProperty({ description: 'ID del grupo en el que se matricula' })
   @IsMongoId()
-  groupId!: string;
+  group!: string;
 
   @ApiPropertyOptional({ description: 'ID del estudiante. Solo lo usa el admin; el estudiante se matricula a si mismo' })
   @IsOptional()

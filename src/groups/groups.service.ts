@@ -95,7 +95,7 @@ export class GroupsService {
   // El admin gestiona cualquier grupo; un docente solo los que tiene a su cargo
   async assertCanManage(groupId: string, user: AuthUser): Promise<GroupDocument> {
     const group = await this.findRaw(groupId);
-    if (user.role === Role.Estudiante) {
+    if (user.role === Role.Docente) {
       const teacher = await this.teachersService.findByUserId(user.id);
       if (String(group.teacher) !== teacher.id) throw new ForbiddenException('El grupo no esta a tu cargo');
     }
@@ -112,6 +112,12 @@ export class GroupsService {
   async update(id: string, dto: UpdateGroupDto): Promise<GroupDocument> {
     const group = await this.model.findById(id).exec();
     if (!group) throw new NotFoundException('Grupo no encontrado');
+
+    // Igual que al crear: un periodo cerrado ya no admite cambios en sus grupos
+    const period = await this.periodsService.findOne(String(group.period));
+    if (period.status === PeriodStatus.Closed) {
+      throw new BadRequestException('No se pueden modificar grupos de un periodo cerrado');
+    }
 
     if (dto.capacity !== undefined && dto.capacity < group.enrolled) {
       throw new BadRequestException(`El cupo no puede ser menor a los ${group.enrolled} estudiantes matriculados`);

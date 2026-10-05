@@ -57,7 +57,11 @@ export class DeletionsService {
   // El docente solo borra evaluaciones de sus grupos
   async removeEvaluation(id: string, user: AuthUser): Promise<Deleted> {
     const evaluation = await this.mustExist<EvaluationDocument>(this.evaluationModel, id, 'Evaluacion');
-    await this.groupsService.assertCanManage(String(evaluation.group), user);
+    const group = await this.groupsService.assertCanManage(String(evaluation.group), user);
+    // Igual que al crear o editar: en un periodo cerrado el plan de evaluacion no se toca
+    if (await this.periodModel.exists({ _id: group.period, status: PeriodStatus.Closed })) {
+      throw new ConflictException('El periodo esta cerrado: no se puede modificar el plan de evaluacion');
+    }
     await this.assertUnused('la evaluacion', [[this.gradeModel.countDocuments({ evaluation: id }), 'notas registradas']]);
     await this.evaluationModel.deleteOne({ _id: id });
     return this.done('evaluations', id);
