@@ -21,10 +21,7 @@ export class EvaluationsService {
 
   async create(dto: CreateEvaluationDto, user: AuthUser): Promise<EvaluationDocument> {
     const group = await this.groupsService.assertCanManage(dto.group, user);
-    const period = await this.periodsService.findOne(String(group.period));
-    if (period.status === PeriodStatus.Closed) {
-      throw new BadRequestException('El periodo esta cerrado: no se puede modificar el plan de evaluacion');
-    }
+    await this.assertPeriodNotClosed(String(group.period));
     await this.assertWeightFits(dto.group, dto.weight);
     return this.model.create(dto);
   }
@@ -46,7 +43,8 @@ export class EvaluationsService {
 
   async update(id: string, dto: UpdateEvaluationDto, user: AuthUser): Promise<EvaluationDocument> {
     const evaluation = await this.findOne(id);
-    await this.groupsService.assertCanManage(String(evaluation.group), user);
+    const group = await this.groupsService.assertCanManage(String(evaluation.group), user);
+    await this.assertPeriodNotClosed(String(group.period));
 
     if (dto.weight !== undefined && dto.weight !== evaluation.weight) {
       if (await this.gradeModel.exists({ evaluation: evaluation._id })) {
@@ -56,6 +54,14 @@ export class EvaluationsService {
     }
     evaluation.set(dto);
     return evaluation.save();
+  }
+
+  // En un periodo cerrado el plan de evaluacion ya no se toca (ni crear, ni editar, ni eliminar)
+  async assertPeriodNotClosed(periodId: string): Promise<void> {
+    const period = await this.periodsService.findOne(periodId);
+    if (period.status === PeriodStatus.Closed) {
+      throw new BadRequestException('El periodo esta cerrado: no se puede modificar el plan de evaluacion');
+    }
   }
 
   // La suma de porcentajes del grupo nunca puede superar 100

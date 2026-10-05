@@ -53,7 +53,7 @@ export class EnrollmentsService {
     const student = await this.resolveStudent(dto.student, user);
     if (!student.active) throw new BadRequestException('El estudiante esta inactivo');
 
-    const group = await this.groupsService.findRaw(dto.groupId);
+    const group = await this.groupsService.findRaw(dto.group);
     if (!group.active) throw new BadRequestException('El grupo esta inactivo');
 
     const period = await this.periodsService.findOne(String(group.period));
@@ -76,7 +76,7 @@ export class EnrollmentsService {
       { model: 'Enrollment', id: created._id },
     );
     // Verifica que la matricula haya quedado confirmada
-    if (created.status === EnrollmentStatus.Active) {
+    if (created.status !== EnrollmentStatus.Active) {
       throw new BadRequestException('No se pudo confirmar la matricula');
     }
     return created;
@@ -97,6 +97,8 @@ export class EnrollmentsService {
       await session.withTransaction(async () => {
         enrollment.status = EnrollmentStatus.Cancelled;
         await enrollment.save({ session });
+        // Libera el cupo que ocupaba (sin bajar de 0)
+        await this.groupModel.updateOne({ _id: enrollment.group, enrolled: { $gt: 0 } }, { $inc: { enrolled: -1 } }, { session });
       });
     } finally {
       await session.endSession();

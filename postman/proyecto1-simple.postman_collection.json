@@ -1,13 +1,17 @@
 {
   "info": {
     "name": "Proyecto1 - Simple",
-    "description": "Todos los endpoints. Cada Crear/Actualizar trae un body de ejemplo; reemplaza los textos PEGA_AQUI_... por IDs reales. Pon el Bearer token en la pestana Authorization de la coleccion y el ID en la Path Variable de cada request.",
+    "description": "Endpoints principales. Cada Crear/Actualizar trae un body de ejemplo; reemplaza los textos PEGA_AQUI_... por IDs reales. Ejecuta primero auth > Login: guarda el token en la variable {{token}} y toda la coleccion lo usa como Bearer (tambien puedes pegarlo a mano en la pestana Authorization). Pon el ID en la Path Variable de cada request.",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },
   "variable": [
     {
       "key": "baseUrl",
       "value": "http://localhost:3000"
+    },
+    {
+      "key": "token",
+      "value": ""
     }
   ],
   "item": [
@@ -28,6 +32,9 @@
                 "api",
                 "health"
               ]
+            },
+            "auth": {
+              "type": "noauth"
             }
           }
         }
@@ -65,8 +72,24 @@
                   "language": "json"
                 }
               }
+            },
+            "auth": {
+              "type": "noauth"
             }
-          }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "// Guarda el token para el resto de la coleccion (Authorization: Bearer {{token}})",
+                  "const body = pm.response.json();",
+                  "if (body.accessToken) pm.collectionVariables.set(\"token\", body.accessToken);"
+                ]
+              }
+            }
+          ]
         },
         {
           "name": "Me",
@@ -694,7 +717,7 @@
             },
             "body": {
               "mode": "raw",
-              "raw": "{\n    \"user\": \"PEGA_AQUI_EL_ID_DEL_USUARIO_DOCENTE\",\n    \"code\": \"DOC-001\",\n    \"department\": \"Ingenieria\"\n}",
+              "raw": "{\n  \"user\": \"PEGA_AQUI_EL_ID_DEL_USUARIO_DOCENTE\",\n  \"code\": \"DOC-001\",\n  \"faculty\": \"PEGA_AQUI_EL_ID_DE_LA_FACULTAD\"\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -801,7 +824,7 @@
             },
             "body": {
               "mode": "raw",
-              "raw": "{\n    \"code\": \"DOC-001\",\n    \"department\": \"Matematicas\",\n    \"active\": true\n}",
+              "raw": "{\n  \"code\": \"DOC-001\",\n  \"active\": true,\n  \"faculty\": \"PEGA_AQUI_EL_ID_DE_LA_FACULTAD\"\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -812,5 +835,15 @@
         }
       ]
     }
-  ]
+  ],
+  "auth": {
+    "type": "bearer",
+    "bearer": [
+      {
+        "key": "token",
+        "value": "{{token}}",
+        "type": "string"
+      }
+    ]
+  }
 }
