@@ -12,3 +12,4 @@ El contenido de este archivo debe puede aumentar o quitar cosas, pero debe de to
 2. Ruta
 Todos los archivos generados deben de encontrarse dentro de la misma carpeta donde se encuentra este archivo, osea, en la carpeta:
 "/Errores encontrados/"
+Dentro de esa carpeta, cada archivo va en la subcarpeta de su area: "/Errores encontrados/Backend/" o "/Errores encontrados/Database/".
