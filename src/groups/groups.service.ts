@@ -113,6 +113,12 @@ export class GroupsService {
     const group = await this.model.findById(id).exec();
     if (!group) throw new NotFoundException('Grupo no encontrado');
 
+    // Igual que al crear: un periodo cerrado ya no admite cambios en sus grupos
+    const period = await this.periodsService.findOne(String(group.period));
+    if (period.status === PeriodStatus.Closed) {
+      throw new BadRequestException('No se pueden modificar grupos de un periodo cerrado');
+    }
+
     if (dto.capacity !== undefined && dto.capacity < group.enrolled) {
       throw new BadRequestException(`El cupo no puede ser menor a los ${group.enrolled} estudiantes matriculados`);
     }
