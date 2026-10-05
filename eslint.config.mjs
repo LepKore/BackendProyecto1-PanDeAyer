@@ -32,4 +32,11 @@ export default tseslint.config(
       '@typescript-eslint/no-require-imports': 'off',
     },
   },
+  {
+    // Este test carga el modulo CommonJS compartido por los scripts
+    files: ['scripts/**/*.spec.ts'],
+    rules: {
+      '@typescript-eslint/no-require-imports': 'off',
+    },
+  },
 );
