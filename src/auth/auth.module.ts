@@ -8,7 +8,6 @@ import { AuthController } from './auth.controller';
 import { AuthService } from './auth.service';
 import { JwtAuthGuard } from './guards/jwt-auth.guard';
 import { JwtStrategy } from './strategies/jwt.strategy';
-import type { StringValue } from 'ms';
 
 @Module({
   imports: [
@@ -19,9 +18,8 @@ import type { StringValue } from 'ms';
       inject: [ConfigService],
       useFactory: (config: ConfigService) => ({
         secret: config.getOrThrow<string>('JWT_SECRET'),
-        signOptions: { expiresIn: String(config.getOrThrow<number>('JWT_EXPIRES_IN_SECONDS')) as StringValue },
-
-
+        // Numero = segundos. Como texto sin unidad ("3600") jsonwebtoken lo toma como milisegundos
+        signOptions: { expiresIn: Number(config.getOrThrow<number>('JWT_EXPIRES_IN_SECONDS')) },
       }),
     }),
   ],
